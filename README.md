@@ -1,3 +1,6 @@
+I AM TRYING TO TRAIN THIS REPOSITORY. THIS IS NOT MY WORK!
+
+
 # FedLMG
 
 The pytorch implementation of FedLMG: One-Shot Heterogeneous Federated Learning with Local Model-Guided Diffusion Models (Accepted by ICML-25).
