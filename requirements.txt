@@ -3,7 +3,7 @@ torchvision
 PyYAML
 diffusers
 transformers
-typing
+#typing
 deepspeed
 numpy
 pillow

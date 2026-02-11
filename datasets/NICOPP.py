@@ -14,7 +14,7 @@ torch.backends.cudnn.deterministic = True
 
 imgsize = 224
 
-nicopp_path = "/home/share/NICOpp/NICO_DG/autumn"
+nicopp_path = "/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG/autumn"
 f = os.listdir(nicopp_path)
 for i in range(len(f)):
     f[i] = f[i].lower()
@@ -31,6 +31,13 @@ def read_nicopp_data(dataset_path, domain_name, split="train",shotnum=999999999)
         for line in lines:
             line = line.strip()
             b = line.split('/')
+    
+            # --- DÜZELTME BAŞLANGICI ---
+            # Eğer metin dosyasındaki yol NICO_DG ile başlıyorsa, o kısmı atıyoruz
+            if len(b) > 0 and b[0] == 'NICO_DG':
+                b = b[1:]
+            # --- DÜZELTME BİTİŞİ ---
+
             b[-1],label = b[-1].split(' ')[0],b[-1].split(' ')[1]
             data_path =f"{'/'.join(b)}"
             data_path = path.join(dataset_path, data_path)
@@ -65,7 +72,7 @@ class Nicopp(Dataset):
 
 
 def get_nicopp_dataset(transform,divide):
-    dataset_path = '/home/share/NICOpp'
+    dataset_path = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG'
     train_data_paths, train_data_labels = read_nicopp_data(dataset_path, divide, split="train",shotnum=30)
     test_data_paths, test_data_labels = read_nicopp_data(dataset_path, divide, split="test",shotnum=999999999)
     train_dataset = Nicopp(train_data_paths, train_data_labels, transform)
@@ -74,7 +81,7 @@ def get_nicopp_dataset(transform,divide):
     return train_dataset, test_dataset
 
 def get_all_nicopp_dataset(transform):
-    dataset_path = '/home/share/NICOpp'
+    dataset_path = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG'
     nico_domains = ['autumn', 'dim', 'grass', 'outdoor', 'rock','water']
     train_data_paths = []
     train_data_labels = []
@@ -105,7 +112,7 @@ def read_nicou_data(dataset_path, domain_name, split="train",shotnum=999999999,c
     data_labels = []
     shot = [0 for _ in range(60)]
     class_style = {}
-    for i in os.listdir('/home/share/NICOpp/txtlist/NICO_unique_official'):
+    for i in os.listdir('/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG/txtlist/NICO_unique_official'):
         if '.DS_Store' in i: continue
         c,s = i.split('_')[0],i.split('_')[1]
         if c in class_style.keys():# and i.split('_')[2]=='test.txt':
@@ -119,7 +126,7 @@ def read_nicou_data(dataset_path, domain_name, split="train",shotnum=999999999,c
     files = []
     for cla in class_style:
         c,s = cla[0],cla[1][domain_name]
-        file = '/home/share/NICOpp/txtlist/NICO_unique_official/'+'_'.join([c,s])+f'_{split}.txt'
+        file = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG/txtlist/NICO_unique_official/'+'_'.join([c,s])+f'_{split}.txt'
         files.append(file)
 
     # split_file = path.join(dataset_path, "txtlist/NICO_unique_official", "{}_{}.txt".format(domain_name, split))
@@ -134,7 +141,7 @@ def read_nicou_data(dataset_path, domain_name, split="train",shotnum=999999999,c
                 b[-1],label = b[-1].split(' ')[0],b[-1].split(' ')[1]
                 data_path =f"{'/'.join(b[4:])}"
                 # data_path, label = line.split(' ')
-                data_path = path.join('/home/share/NICOpp', data_path)
+                data_path = path.join('/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG', data_path)
                 #label = int(label)
                 label = nicopp_class_prompts.index(b[-3])
                 if shot[int(label)]<shotnum:
@@ -151,7 +158,7 @@ def read_nicou_data(dataset_path, domain_name, split="train",shotnum=999999999,c
 
 
 def get_nicou_dataset(transform,divide):
-    dataset_path = '/home/share/NICOpp'
+    dataset_path = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG'
     
     train_data_paths, train_data_labels = read_nicou_data(dataset_path, divide, split="train",shotnum=30)
     test_data_paths, test_data_labels = read_nicou_data(dataset_path, divide, split="test",shotnum=9999999)
@@ -163,7 +170,7 @@ def get_nicou_dataset(transform,divide):
 
 
 def get_all_nicou_dataset(transform):
-    dataset_path = '/home/share/NICOpp'
+    dataset_path = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG'
     nico_domains = [0,1,2,3,4,5]
     train_data_paths = []
     train_data_labels = []
@@ -189,7 +196,7 @@ def get_all_nicou_dataset(transform):
 
 
 def get_nicou_dataset_single(transform,divide,cate= None):
-    dataset_path = '/home/share/NICOpp'
+    dataset_path = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG'
     
     train_data_paths, train_data_labels = read_nicou_data(dataset_path, divide, split="train",shotnum=9999999,cate = cate)
     test_data_paths, test_data_labels = read_nicou_data(dataset_path, divide, split="test",shotnum=9999999,cate = cate)
@@ -200,7 +207,7 @@ def get_nicou_dataset_single(transform,divide,cate= None):
 
 
 def get_nicopp_dataset_classes(transform,classes=None):
-    dataset_path = '/home/share/NICOpp'
+    dataset_path = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG'
     train_data_paths, train_data_labels = read_nicopp_data_classes(dataset_path,classes = classes, split="train",shotnum=30)
     test_data_paths, test_data_labels = read_nicopp_data_classes(dataset_path,classes = classes, split="test",shotnum=999999999)
     train_dataset = Nicopp(train_data_paths, train_data_labels, transform)
@@ -238,7 +245,7 @@ def read_nicopp_data_classes(dataset_path, classes, split="train",shotnum=999999
     return np.array(data_paths), np.array(data_labels)
     
 def get_nicou_dataset_classes(transform,classes=None):
-    dataset_path = '/home/share/NICOpp'
+    dataset_path = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG'
     train_data_paths, train_data_labels = read_nicou_data_classes(dataset_path,classes = classes, split="train",shotnum=30)
     test_data_paths, test_data_labels = read_nicou_data_classes(dataset_path,classes = classes, split="test",shotnum=999999999)
     train_dataset = Nicopp(train_data_paths, train_data_labels, transform)
@@ -251,7 +258,7 @@ def read_nicou_data_classes(dataset_path, classes, split="train",shotnum=9999999
     data_paths = []
     data_labels = []
     class_style = {}
-    for i in os.listdir('/home/share/NICOpp/txtlist/NICO_unique_official'):
+    for i in os.listdir('/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG/txtlist/NICO_unique_official'):
         if '.DS_Store' in i: continue
         c,s = i.split('_')[0],i.split('_')[1]
         if c in class_style.keys():# and i.split('_')[2]=='test.txt':
@@ -266,7 +273,7 @@ def read_nicou_data_classes(dataset_path, classes, split="train",shotnum=9999999
     for cla in class_style[classes*10:10+classes*10]:
         c= cla[0]
         for s in cla[1]:
-            file = '/home/share/NICOpp/txtlist/NICO_unique_official/'+'_'.join([c,s])+f'_{split}.txt'
+            file = '/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG/txtlist/NICO_unique_official/'+'_'.join([c,s])+f'_{split}.txt'
             files.append(file)
     # split_file = path.join(dataset_path, "txtlist/NICO_unique_official", "{}_{}.txt".format(domain_name, split))
     for split_file in files:
@@ -281,7 +288,7 @@ def read_nicou_data_classes(dataset_path, classes, split="train",shotnum=9999999
                 b[-1],label = b[-1].split(' ')[0],b[-1].split(' ')[1]
                 data_path =f"{'/'.join(b[4:])}"
                 # data_path, label = line.split(' ')
-                data_path = path.join('/home/share/NICOpp', data_path)
+                data_path = path.join('/mnt/sdb/users/seyda/MyProjects/FedLMG/datasets/NICO_DG', data_path)
                 #label = int(label)
                 label = nicopp_class_prompts.index(b[-3])
                 if shot[int(label)]<shotnum:

@@ -3,4 +3,4 @@
 
 ##1.train classifiers first
 
-python train_classifier.py
+python3 train_classifier.py

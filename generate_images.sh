@@ -6,5 +6,5 @@
 #for i in {0..29..1}
 #do
 #echo $i
-python generate_images.py --category 1
+python3 generate_images.py --category 1
 #done
