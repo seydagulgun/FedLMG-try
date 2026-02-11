@@ -1,0 +1,15 @@
+# Veri setlerini engelle
+datasets/
+data/
+
+# Model ağırlıklarını engelle
+checkpoints/
+
+# Python geçici dosyaları
+__pycache__/
+*.py[cod]
+
+# Log dosyaları ve çıktılar
+logs/
+output/
+*.log

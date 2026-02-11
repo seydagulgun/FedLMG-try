@@ -65,7 +65,7 @@ class Client: # as a user
             print(self.model.encoder)
             print(backbone)
         
-        noise_scheduler = DDPMScheduler.from_pretrained("stabilityai/stable-diffusion-2-1", subfolder="scheduler", torch_dtype=torch.float16)
+        noise_scheduler = DDPMScheduler.from_pretrained("runwayml/stable-diffusion-v1-5", subfolder="scheduler", torch_dtype=torch.float16)
         task_criterion = nn.CrossEntropyLoss().cuda()
         optimizer = torch.optim.SGD(self.model.parameters(), lr=lr,momentum=0.9,weight_decay=1e-5)#weight_decay=0.001
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
@@ -101,7 +101,13 @@ class Client: # as a user
                 top1, topk = evaluation(self.model,test_data)
                 print(f'final server model: top1 {top1}, top5 {topk}')    
         self.model.eval()
+        import os
         save_path = os.path.join("output/nicopp_img10_{}_epoch_{}_{}.tar".format(self.domain_name,epoch,backbone)) 
+        # Klasör yoksa oluşturma kodu:
+        
+        directory = os.path.dirname(save_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)   
         if isinstance(self.model, torch.nn.DataParallel):
             torch.save(self.model.module.state_dict(), save_path)
         else:
