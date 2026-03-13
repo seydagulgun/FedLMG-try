@@ -5,6 +5,7 @@ import logging
 import pdb
 
 import math
+import glob
 import os
 import warnings
 from pathlib import Path
@@ -420,6 +421,7 @@ def main(args):
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         mixed_precision=args.mixed_precision,
         log_with=args.report_to,
+        #logging_dir=logging_dir,
         project_dir=args.output_dir,
     )
 
@@ -533,34 +535,77 @@ def main(args):
     else:
         optimizer_class = torch.optim.AdamW
 
-    
     class ClientTune(nn.Module):
-        def __init__(self, classes=345):
+        def __init__(self, arch='resnet18', classes=60):
             super(ClientTune, self).__init__()
-            self.encoder = torchvision.models.resnet18(pretrained=True)
-            self.encoder.fc = torch.nn.Identity()
+            
+            # 1. Gelen mimari (arch) ismine göre doğru modeli seçiyoruz
+            if 'resnet18' in arch:
+                self.encoder = torchvision.models.resnet18(pretrained=True)
+                self.encoder.fc = torch.nn.Identity()
+            elif 'resnet34' in arch:
+                self.encoder = torchvision.models.resnet34(pretrained=True)
+                self.encoder.fc = torch.nn.Identity()
+            elif 'mobilenetv2' in arch:
+                self.encoder = torchvision.models.mobilenet_v2(pretrained=True)
+                self.encoder.classifier = torch.nn.Identity()
+            elif 'mobilenetv3' in arch:
+                self.encoder = torchvision.models.mobilenet_v3_large(pretrained=True)
+                self.encoder.classifier = torch.nn.Identity()
+            elif 'vgg16' in arch:
+                self.encoder = torchvision.models.vgg16(pretrained=True)
+                self.encoder.classifier = torch.nn.Identity()
+            elif 'shufflenet' in arch:
+                self.encoder = torchvision.models.shufflenet_v2_x1_0(pretrained=True)
+                self.encoder.fc = torch.nn.Identity()
+            else:
+                self.encoder = torchvision.models.resnet18(pretrained=True)
+                self.encoder.fc = torch.nn.Identity()
+
+            # 2. Modele dummy (sahte) bir veri geçirip çıkan özellikleri hesaplıyoruz
+            # Bu sayede her mimarinin çıkış katmanı boyutu (512, 1024, 1280 vb.) hatasız bulunuyor!
+            dummy_input = torch.randn(1, 3, 224, 224)
+            with torch.no_grad():
+                dummy_out = self.encoder(dummy_input)
+            in_features = dummy_out.view(1, -1).shape[1]
+
             self.final_proj = nn.Sequential(
-                nn.Linear(512,classes)
+                nn.Linear(in_features, classes)
             )
 
-        def forward(self, x,timestep=None):   
-            #oriout = self.encoder(x)
-            x = self.encoder.conv1(x)
-            x = self.encoder.bn1(x)
-            x = self.encoder.relu(x)
-            x = self.encoder.maxpool(x)
-            x = self.encoder.layer1(x)
-
-            x = self.encoder.layer2(x)
-                   
-            x = self.encoder.layer3(x)
-                   
-            x = self.encoder.layer4(x)
-    
-            x = self.encoder.avgpool(x)
-            x = self.encoder.fc(x)
+        def forward(self, x, timestep=None):   
+            # 3. Elle tek tek katman çağırmak yerine, veriyi doğrudan encodera veriyoruz
+            # Bu sayede model ResNet de olsa, MobileNet de olsa sorunsuz çalışır.
+            x = self.encoder(x)
             output = self.final_proj(x.squeeze())
             return output
+    # class ClientTune(nn.Module):
+    #     def __init__(self, classes=345):
+    #         super(ClientTune, self).__init__()
+    #         self.encoder = torchvision.models.resnet18(pretrained=True)
+    #         self.encoder.fc = torch.nn.Identity()
+    #         self.final_proj = nn.Sequential(
+    #             nn.Linear(512,classes)
+    #         )
+
+    #     def forward(self, x,timestep=None):   
+    #         #oriout = self.encoder(x)
+    #         x = self.encoder.conv1(x)
+    #         x = self.encoder.bn1(x)
+    #         x = self.encoder.relu(x)
+    #         x = self.encoder.maxpool(x)
+    #         x = self.encoder.layer1(x)
+
+    #         x = self.encoder.layer2(x)
+                   
+    #         x = self.encoder.layer3(x)
+                   
+    #         x = self.encoder.layer4(x)
+    
+    #         x = self.encoder.avgpool(x)
+    #         x = self.encoder.fc(x)
+    #         output = self.final_proj(x.squeeze())
+    #         return output
         
     # Scheduler and math around the number of training steps.
     torch.backends.cudnn.enabled = True
@@ -594,31 +639,30 @@ def main(args):
     global_step = 0
     first_epoch = 0
     
-    path = r"/home/share/DomainNet/clipart"
-    f = os.listdir(path)
-    for i in range(len(f)):
-        f[i] = 'an image of '+f[i].lower()
-    class_prompts = sorted(f)   
-    print(class_prompts[args.category])
+    # path = r"/home/share/DomainNet/clipart"
+    # f = os.listdir(path)
+    # for i in range(len(f)):
+    #     f[i] = 'an image of '+f[i].lower()
+    # class_prompts = sorted(f)   
+    # print(class_prompts[args.category])
     #if not os.path.exists(f'/home/share/gen_data_nips/sybn_domainnet_90_noaddnoise_img30/'+class_prompts[args.category]):
      #   os.makedirs(f'/home/share/gen_data_nips/sybn_domainnet_90_noaddnoise_img30/'+class_prompts[args.category])
     
     
     
-    #nicopp_path = "/home/share/NICOpp/NICO_DG/autumn"
-    #f = os.listdir(nicopp_path)
-    #for i in range(len(f)):
-    #    f[i] = 'an image of ' + f[i].lower()
-    #class_prompts = sorted(f) 
-    #print(class_prompts)
-    #print(aaa)
-    #print(class_prompts[args.category])
+    nicopp_path = "datasets/NICO_DG/autumn"
+    f = os.listdir(nicopp_path)
+    for i in range(len(f)):
+       f[i] = 'an image of ' + f[i].lower()
+    class_prompts = sorted(f) 
+    print(class_prompts)
+    print(class_prompts[args.category])
     
     
     #open_image_class_prompts,open_image_rough_classes = get_openimage_classes()
     #class_prompts = open_image_rough_classes
-    if not os.path.exists(f'/home/share/gen_data_nips/test_noedit/'+class_prompts[args.category]):
-        os.makedirs(f'/home/share/gen_data_nips/test_noedit/'+class_prompts[args.category])
+    if not os.path.exists(f'generated_images/test_noedit'+class_prompts[args.category]):
+        os.makedirs(f'generated_images/test_noedit/'+class_prompts[args.category])
         
         
     
@@ -630,7 +674,8 @@ def main(args):
     uncond_input_ids = uncond_inputs.input_ids
     uncond_embeddings = text_encoder(uncond_input_ids.to(unet.device))[0]
     
-    domains = ['clipart', 'infograph', 'painting', 'quickdraw', 'real', 'sketch']
+    #domains = ['clipart', 'infograph', 'painting', 'quickdraw', 'real', 'sketch']
+    domains = ['autumn', 'dim', 'grass', 'outdoor', 'rock', 'water']
     #domains = ['clipart', 'infograph', 'painting', 'real', 'sketch']
     client_num= 6 
     
@@ -639,15 +684,42 @@ def main(args):
     generator = generator.manual_seed(args.category+seed)
     train_epoch = [30,30,30,30,30,30]
     #train_epoch = [5,5,5,5,5,5]
+    model_files = [
+        '/home/seyda/FedLMG-try/output/nicopp_img10_0_epoch_19_mobilenetv3.tar',
+        '/home/seyda/FedLMG-try/output/nicopp_img10_1_epoch_19_resnet18.tar',
+        '/home/seyda/FedLMG-try/output/nicopp_img10_2_epoch_19_resnet34.tar',
+        '/home/seyda/FedLMG-try/output/nicopp_img10_3_epoch_19_mobilenetv2.tar',
+        '/home/seyda/FedLMG-try/output/nicopp_img10_4_epoch_19_vgg16.tar',
+        '/home/seyda/FedLMG-try/output/nicopp_img10_5_epoch_19_shufflenet.tar'
+    ]
+
+    arch_list = ['mobilenetv3','resnet18','resnet34','mobilenetv2','vgg16','shufflenet']
+
     for client in range(client_num):
-        model = ClientTune(classes=90)     
+        # Sıradaki client'ın mimarisini listeden çekiyoruz
+        current_arch = arch_list[client]
+        
+        # SADECE 60 YAZMAK YERİNE, MİMARİYİ DE GÖNDERİYORUZ
+        model = ClientTune(arch=current_arch, classes=60)     
         client_name = int(args.category/10)
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/domainnet_90_noaddnoise_img30_'+domains[client]+'_epoch_90.tar'
-        print(path)
-        load_state_dict(model , torch.load(path,map_location='cpu'), prefix='module.')
+        
+        path = model_files[client]
+        print(f"\n--- Uploaded model: {path} | Structure: {current_arch} ---")
+        
+        load_state_dict(model, torch.load(path, map_location='cpu'), prefix='module.')
         model = model.half()
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model) 
-        model = accelerator.prepare(model)   
+        model = accelerator.prepare(model)
+
+    # for client in range(client_num):
+    #     model = ClientTune(classes=60)    #NICO++ has 60 classes.   
+    #     client_name = int(args.category/10)
+    #     path = model_files[client]
+    #     print(f"Uploaded model: {path}")
+    #     load_state_dict(model , torch.load(path,map_location='cpu'), prefix='module.')  #SIRAYLA MODELLERİ YÜKLEMEK İÇİN COMMENT ALDIM, YUKARIDA SIRAYLA YÜKLEME YAPILIYOR
+    #     model = model.half()
+    #     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model) 
+    #     model = accelerator.prepare(model)   
         #print(model)
         #for k, v in model.state_dict().items():
         #    print(k)
@@ -707,6 +779,7 @@ def main(args):
                         #timesteps = torch.randint(0, noise_scheduler.config.num_train_timesteps, (1,), device=latents.device)
                         #timesteps = timesteps.long()
                         noise_scheduler.set_timesteps(50)
+                        noise_scheduler.alphas_cumprod = noise_scheduler.alphas_cumprod.to(latents.device)
                         timesteps_tensor = noise_scheduler.timesteps.to(latents.device)
                         
                         for aaaa in range(10):
@@ -881,7 +954,8 @@ def main(args):
                             #print("client",client,"category",step,"img_num",img_num,"xxxx",xxxx,"repeat",repeat,"timestep",int(timesteps))
                            # if nsfw_content_detected[0] == False and loss_oh <= 0.5 and torch.argmax(output.unsqueeze(0)) == step:
                             #if nsfw_content_detected[0] == False:
-                            torchvision.utils.save_image(image, '/home/share/gen_data_nips/test_noedit/'+class_prompts[args.category]+'/train_prop'+str(client)+'_'+str(img_num)+'.jpg')
+                            save_path = f'/home/seyda/FedLMG-try/generated_images/test_noedit/{class_prompts[args.category]}/train_prop{client}_{img_num}.jpg'
+                            torchvision.utils.save_image(image, save_path)
                             img_num = img_num + 1
                             xxxx = xxxx + 1
                             #else :
