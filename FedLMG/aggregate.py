@@ -1,3 +1,5 @@
+import multiprocessing
+multiprocessing.set_start_method('fork', force=True)
 import torch
 import torch.nn as nn
 import torchvision
@@ -33,19 +35,19 @@ class ServerData_read(Dataset):
         super(ServerData_read, self).__init__()
         self.root_dir = root_dir
         
-        path = r"datasets/DomainNet/DomainNet/clipart"
-        f = os.listdir(path)
-        for i in range(len(f)):
-            f[i] = f[i].lower()
-        self.class_prompts = sorted(f) 
-        self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<90}
-        
-        #nicopp_path = "/home/share/NICOpp/NICO_DG/autumn"
-        #f = os.listdir(nicopp_path)
+        #path = r"/home/share/DomainNet/clipart"
+        #f = os.listdir(path)
         #for i in range(len(f)):
-        #    f[i] = 'an image of '+f[i].lower()
-        #self.class_prompts = sorted(f) 
-        #self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<60}
+        #    f[i] = f[i].lower()
+        #self.class_prompts = sorted(f)
+        #self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<90}
+
+        nicopp_path = "/home/seyda/FedLMG-try/FedLMG/datasets/NICO_DG/autumn"
+        f = os.listdir(nicopp_path)
+        for i in range(len(f)):
+            f[i] = 'an image of '+f[i].lower()
+        self.class_prompts = sorted(f)
+        self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<60}
         
         #open_image_class_prompts,open_image_rough_classes = get_openimage_classes()
         #self.class_prompts = open_image_rough_classes
@@ -53,36 +55,36 @@ class ServerData_read(Dataset):
         
         self.images = []
         self.targets = []
+        self.domains = []
         self.transforms = transforms
         for c in self.classes:
-            class_dir = os.path.join(self.root_dir, 'an image of ' + c)
-            if not os.path.exists(class_dir): continue
-            #class_dir = os.path.join(self.root_dir, str(c))
+            class_dir = os.path.join(self.root_dir, str(c))
             for image_name in os.listdir(class_dir):
                 if '.ipynb_checkpoints' in image_name: continue
                 image_path = os.path.join(class_dir, image_name)
                 self.images.append(image_path)
                 self.targets.append(self.classes[c])
+                # dosya adı: train_prop{client}_{img_num}.jpg → domain = client
+                domain = int(image_name.split('train_prop')[1].split('_')[0])
+                self.domains.append(domain)
         print(len(self.images))
+
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, index):
         img = Image.open(self.images[index])
         target = self.targets[index]
+        domain = self.domains[index]
         if not img.mode == "RGB":
             img = img.convert("RGB")
         if self.transforms is not None:
             img = self.transforms(img)
-            
-            #img = self.transforms(img, return_tensors="pt").pixel_values
-            #img = img.squeeze(0)
-            
-        return img, target
+        return img, target, domain
     
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--base-path', default="datasets/DomainNet/DomainNet")#/home/share/DomainNet/home/share/tiny-imagenet-200
+    parser.add_argument('--base-path', default="/home/share/DomainNet")#/home/share/DomainNet/home/share/tiny-imagenet-200
     parser.add_argument('--alpha', default=1,type=float,help='degree of non-iid, only used for tinyimagenet')
     parser.add_argument('--beta', default=0,type=float,help='degree of noise')
     parser.add_argument('--data', default='nicopp',help='tinyimagenet or domainnet or openimage or nicopp or nicou')
@@ -264,7 +266,7 @@ elif args.data =='nicou':
 #    client.train(client= i,lr=args.learningrate,epochs = args.clientepoch,test_data = test_data[i],change_backbone=True)    
 
 #load synthetic dataset
-dataset = ServerData_read('/home/seyda/FedLMG-try/generated_images/test_noedit', transform)
+dataset = ServerData_read('gen_data/nicopp', transform)
 dataloader = torch.utils.data.DataLoader(dataset,batch_size=256,shuffle=True,num_workers=8,pin_memory=True,drop_last=True)
 server = Server(transform,args.serverbs,num_classes)
 
@@ -272,7 +274,7 @@ server = Server(transform,args.serverbs,num_classes)
 server.update_features(dataloader = dataloader)
 
 ##centralized ceiling dataloader
-server.update_features(dataloader = server_loader)
+#server.update_features(dataloader = server_loader)
 
 #server.train(lr=args.learningrate,epochs = args.clientepoch,test_data = test_data)
 

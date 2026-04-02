@@ -29,7 +29,7 @@ class Server: # as a user
         self.imgpath = imgpath
         self.start_class = 0
         
-        path = r"/home/share/DomainNet/clipart"
+        path = r"datasets/DomainNet/DomainNet/clipart"
         
         f = os.listdir(path)
         for i in range(len(f)):
@@ -76,7 +76,7 @@ class Server: # as a user
         optimizer = torch.optim.SGD(self.model.parameters(), lr=lr,momentum=0.9,weight_decay=1e-5)#weight_decay=0.001
         teachermodels = []
         teacher1 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_0_epoch_19_mobilenetv3.tar'
+        path = 'output/nicopp_img10_0_epoch_19_mobilenetv3.tar'
         teacher1.encoder = torchvision.models.mobilenet_v3_small(pretrained=True)#MobileNetV2()
         teacher1.encoder.classifier[3] = torch.nn.Identity()
         teacher1.final_proj = nn.Linear(1024,self.classes)
@@ -85,7 +85,7 @@ class Server: # as a user
         teachermodels.append(teacher1.cuda().eval())
         
         teacher2 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_1_epoch_19_resnet18.tar'
+        path = 'output/nicopp_img10_1_epoch_19_resnet18.tar'
         teacher2.encoder = torchvision.models.resnet18(pretrained=True)#MobileNetV2()
         teacher2.encoder.fc = torch.nn.Identity()
         teacher2.final_proj = nn.Linear(512,self.classes)
@@ -94,7 +94,7 @@ class Server: # as a user
         teachermodels.append(teacher2.cuda().eval())
         
         teacher3 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_2_epoch_19_resnet34.tar'
+        path = 'output/nicopp_img10_2_epoch_19_resnet34.tar'
         teacher3.encoder = torchvision.models.resnet34(pretrained=True)#MobileNetV2()
         teacher3.encoder.fc = torch.nn.Identity()
         teacher3.final_proj = nn.Linear(512,self.classes)
@@ -103,7 +103,7 @@ class Server: # as a user
         teachermodels.append(teacher3.cuda().eval())
         
         teacher4 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_3_epoch_19_mobilenetv2.tar'
+        path = 'output/nicopp_img10_3_epoch_19_mobilenetv2.tar'
         teacher4.encoder = torchvision.models.mobilenet_v2(pretrained=True)#MobileNetV2()
         teacher4.encoder.classifier[1] = torch.nn.Identity()
         teacher4.final_proj = nn.Linear(1280,self.classes)
@@ -112,7 +112,7 @@ class Server: # as a user
         teachermodels.append(teacher4.cuda().eval())
         
         teacher5 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_4_epoch_19_vgg16.tar'
+        path = 'output/nicopp_img10_4_epoch_19_vgg16.tar'
         teacher5.encoder = torchvision.models.vgg16(pretrained=True)#MobileNetV2()
         teacher5.encoder.classifier[6] = torch.nn.Identity()
         teacher5.final_proj = nn.Linear(4096,self.classes)
@@ -121,7 +121,7 @@ class Server: # as a user
         teachermodels.append(teacher5.cuda().eval())
         
         teacher6 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_5_epoch_19_shufflenet.tar'
+        path = 'output/nicopp_img10_5_epoch_19_shufflenet.tar'
         #teacher6.encoder = torchvision.models.shufflenet_v2_x0_5(pretrained=True)#MobileNetV2()
         #teacher6.encoder.fc = torch.nn.Identity()
         #teacher6.final_proj = nn.Linear(1024,self.classes)
@@ -139,7 +139,7 @@ class Server: # as a user
         print(len(self.dataloader))
         for epoch in tqdm(range(epochs)):
             self.model.train()
-            for i, (image, label,_) in enumerate((self.dataloader)):
+            for i, (image, label) in enumerate((self.dataloader)):
                 optimizer.zero_grad()
                 image = image.cuda()
                 label = label.cuda()
@@ -182,7 +182,7 @@ class Server: # as a user
         optimizer = torch.optim.SGD(self.model.parameters(), lr=lr,momentum=0.9,weight_decay=1e-5)#weight_decay=0.001
         teachermodels = []
         teacher1 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_0_epoch_19_mobilenetv3.tar'
+        path = 'output/nicopp_img10_0_epoch_19_mobilenetv3.tar'
         teacher1.encoder = torchvision.models.mobilenet_v3_small(pretrained=True)#MobileNetV2()
         teacher1.encoder.classifier[3] = torch.nn.Identity()
         teacher1.final_proj = nn.Linear(1024,self.classes)
@@ -191,7 +191,7 @@ class Server: # as a user
         teachermodels.append(teacher1.cuda().eval())
         
         teacher2 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_1_epoch_19_resnet18.tar'
+        path = 'output/nicopp_img10_1_epoch_19_resnet18.tar'
         teacher2.encoder = torchvision.models.resnet18(pretrained=True)#MobileNetV2()
         teacher2.encoder.fc = torch.nn.Identity()
         teacher2.final_proj = nn.Linear(512,self.classes)
@@ -200,7 +200,7 @@ class Server: # as a user
         teachermodels.append(teacher2.cuda().eval())
         
         teacher3 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_2_epoch_19_resnet34.tar'
+        path = 'output/nicopp_img10_2_epoch_19_resnet34.tar'
         teacher3.encoder = torchvision.models.resnet34(pretrained=True)#MobileNetV2()
         teacher3.encoder.fc = torch.nn.Identity()
         teacher3.final_proj = nn.Linear(512,self.classes)
@@ -209,7 +209,7 @@ class Server: # as a user
         teachermodels.append(teacher3.cuda().eval())
         
         teacher4 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_3_epoch_19_mobilenetv2.tar'
+        path = 'output/nicopp_img10_3_epoch_19_mobilenetv2.tar'
         teacher4.encoder = torchvision.models.mobilenet_v2(pretrained=True)#MobileNetV2()
         teacher4.encoder.classifier[1] = torch.nn.Identity()
         teacher4.final_proj = nn.Linear(1280,self.classes)
@@ -218,7 +218,7 @@ class Server: # as a user
         teachermodels.append(teacher4.cuda().eval())
         
         teacher5 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_4_epoch_19_vgg16.tar'
+        path = 'output/nicopp_img10_4_epoch_19_vgg16.tar'
         teacher5.encoder = torchvision.models.vgg16(pretrained=True)#MobileNetV2()
         teacher5.encoder.classifier[6] = torch.nn.Identity()
         teacher5.final_proj = nn.Linear(4096,self.classes)
@@ -227,7 +227,7 @@ class Server: # as a user
         teachermodels.append(teacher5.cuda().eval())
         
         teacher6 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_5_epoch_19_shufflenet.tar'
+        path = 'output/nicopp_img10_5_epoch_19_shufflenet.tar'
         #teacher6.encoder = torchvision.models.shufflenet_v2_x0_5(pretrained=True)#MobileNetV2()
         #teacher6.encoder.fc = torch.nn.Identity()
         #teacher6.final_proj = nn.Linear(1024,self.classes)
@@ -286,7 +286,7 @@ class Server: # as a user
         optimizer = torch.optim.SGD(self.model.parameters(), lr=lr,momentum=0.9,weight_decay=1e-5)#weight_decay=0.001
         teachermodels = []
         teacher1 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_0_epoch_19_mobilenetv3.tar'
+        path = 'output/nicopp_img10_0_epoch_19_mobilenetv3.tar'
         teacher1.encoder = torchvision.models.mobilenet_v3_small(pretrained=True)#MobileNetV2()
         teacher1.encoder.classifier[3] = torch.nn.Identity()
         teacher1.final_proj = nn.Linear(1024,self.classes)
@@ -295,7 +295,7 @@ class Server: # as a user
         teachermodels.append(teacher1.cuda().eval())
         
         teacher2 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_1_epoch_19_resnet18.tar'
+        path = 'output/nicopp_img10_1_epoch_19_resnet18.tar'
         teacher2.encoder = torchvision.models.resnet18(pretrained=True)#MobileNetV2()
         teacher2.encoder.fc = torch.nn.Identity()
         teacher2.final_proj = nn.Linear(512,self.classes)
@@ -304,7 +304,7 @@ class Server: # as a user
         teachermodels.append(teacher2.cuda().eval())
         
         teacher3 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_2_epoch_19_resnet34.tar'
+        path = 'output/nicopp_img10_2_epoch_19_resnet34.tar'
         teacher3.encoder = torchvision.models.resnet34(pretrained=True)#MobileNetV2()
         teacher3.encoder.fc = torch.nn.Identity()
         teacher3.final_proj = nn.Linear(512,self.classes)
@@ -313,7 +313,7 @@ class Server: # as a user
         teachermodels.append(teacher3.cuda().eval())
         
         teacher4 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_3_epoch_19_mobilenetv2.tar'
+        path = 'output/nicopp_img10_3_epoch_19_mobilenetv2.tar'
         teacher4.encoder = torchvision.models.mobilenet_v2(pretrained=True)#MobileNetV2()
         teacher4.encoder.classifier[1] = torch.nn.Identity()
         teacher4.final_proj = nn.Linear(1280,self.classes)
@@ -322,7 +322,7 @@ class Server: # as a user
         teachermodels.append(teacher4.cuda().eval())
         
         teacher5 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_4_epoch_19_vgg16.tar'
+        path = 'output/nicopp_img10_4_epoch_19_vgg16.tar'
         teacher5.encoder = torchvision.models.vgg16(pretrained=True)#MobileNetV2()
         teacher5.encoder.classifier[6] = torch.nn.Identity()
         teacher5.final_proj = nn.Linear(4096,self.classes)
@@ -331,7 +331,7 @@ class Server: # as a user
         teachermodels.append(teacher5.cuda().eval())
         
         teacher6 = ServerTune(classes=self.num_classes)     
-        path = '/home/yangmingzhao/2023_3/NIPS_train_prop/output/nicopp_img10_5_epoch_19_shufflenet.tar'
+        path = 'output/nicopp_img10_5_epoch_19_shufflenet.tar'
         #teacher6.encoder = torchvision.models.shufflenet_v2_x0_5(pretrained=True)#MobileNetV2()
         #teacher6.encoder.fc = torch.nn.Identity()
         #teacher6.final_proj = nn.Linear(1024,self.classes)

@@ -33,19 +33,19 @@ class ServerData_read(Dataset):
         super(ServerData_read, self).__init__()
         self.root_dir = root_dir
         
-        path = r"/home/share/DomainNet/clipart"
-        f = os.listdir(path)
-        for i in range(len(f)):
-            f[i] = f[i].lower()
-        self.class_prompts = sorted(f) 
-        self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<90}
-        
-        #nicopp_path = "/home/share/NICOpp/NICO_DG/autumn"
-        #f = os.listdir(nicopp_path)
+        #path = r"/home/share/DomainNet/clipart"
+        #f = os.listdir(path)
         #for i in range(len(f)):
-        #    f[i] = 'an image of '+f[i].lower()
+        #    f[i] = f[i].lower()
         #self.class_prompts = sorted(f) 
-        #self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<60}
+        #self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<90}
+        
+        nicopp_path = "datasets/NICO_DG/autumn"
+        f = os.listdir(nicopp_path)
+        for i in range(len(f)):
+            f[i] = 'an image of '+f[i].lower()
+        self.class_prompts = sorted(f) 
+        self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<60}
         
         #open_image_class_prompts,open_image_rough_classes = get_openimage_classes()
         #self.class_prompts = open_image_rough_classes
@@ -263,7 +263,7 @@ for i,client in enumerate(clients):
     client.train(client= i,lr=args.learningrate,epochs = args.clientepoch,test_data = test_data[i],change_backbone=True)    
 
 #load synthetic dataset
-#dataset = ServerData_read(f'/home/share/gen_data/semisup_cipqr_5img_10repeat_crossglo_classglo_scale10_0_90',transform)
+#dataset = ServerData_read('/home/seyda/FedLMG-try/generated_images/test_noedit', transform)
 #dataloader = torch.utils.data.DataLoader(dataset,batch_size=256,shuffle=True,num_workers=8,pin_memory=True,drop_last=True)
 #server = Server(transform,args.serverbs,num_classes)
 

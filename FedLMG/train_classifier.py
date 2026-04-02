@@ -1,3 +1,5 @@
+import multiprocessing
+multiprocessing.set_start_method('fork', force=True)
 import torch
 import torch.nn as nn
 import torchvision
@@ -33,30 +35,29 @@ class ServerData_read(Dataset):
         super(ServerData_read, self).__init__()
         self.root_dir = root_dir
         
-        path = r"datasets/DomainNet/DomainNet/clipart"
-        f = os.listdir(path)
+        # path = r"/home/share/DomainNet/clipart"
+        # f = os.listdir(path)
+        # for i in range(len(f)):
+        #     f[i] = f[i].lower()
+        # self.class_prompts = sorted(f) 
+        # self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<90}
+        
+        nicopp_path = "FedLMG/datasets/NICO_DG/autumn"
+        f = os.listdir(nicopp_path)
         for i in range(len(f)):
-            f[i] = f[i].lower()
+           f[i] = 'an image of '+f[i].lower()
         self.class_prompts = sorted(f) 
-        self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<90}
+        self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<60}
         
-        #nicopp_path = "/home/share/NICOpp/NICO_DG/autumn"
-        #f = os.listdir(nicopp_path)
-        #for i in range(len(f)):
-        #    f[i] = 'an image of '+f[i].lower()
-        #self.class_prompts = sorted(f) 
-        #self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<60}
-        
-        #open_image_class_prompts,open_image_rough_classes = get_openimage_classes()
-        #self.class_prompts = open_image_rough_classes
-        #self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<20}      
+        open_image_class_prompts,open_image_rough_classes = get_openimage_classes()
+        self.class_prompts = open_image_rough_classes
+        self.classes = {c:i for i,c in enumerate(self.class_prompts) if i<20}      
         
         self.images = []
         self.targets = []
         self.transforms = transforms
         for c in self.classes:
-            class_dir = os.path.join(self.root_dir, 'an image of ' + c)
-            if not os.path.exists(class_dir): continue
+            class_dir = os.path.join(self.root_dir,str(c))
             #class_dir = os.path.join(self.root_dir, str(c))
             for image_name in os.listdir(class_dir):
                 if '.ipynb_checkpoints' in image_name: continue
@@ -82,7 +83,7 @@ class ServerData_read(Dataset):
     
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--base-path', default="datasets/DomainNet/DomainNet")#/home/share/DomainNet/home/share/tiny-imagenet-200
+    parser.add_argument('--base-path', default="/home/share/DomainNet")#/home/share/DomainNet/home/share/tiny-imagenet-200
     parser.add_argument('--alpha', default=1,type=float,help='degree of non-iid, only used for tinyimagenet')
     parser.add_argument('--beta', default=0,type=float,help='degree of noise')
     parser.add_argument('--data', default='nicopp',help='tinyimagenet or domainnet or openimage or nicopp or nicou')
@@ -260,25 +261,25 @@ elif args.data =='nicou':
         
 #train classifiers
 
-#for i,client in enumerate(clients):
-#    client.train(client= i,lr=args.learningrate,epochs = args.clientepoch,test_data = test_data[i],change_backbone=True)    
+for i,client in enumerate(clients):
+    client.train(client= i,lr=args.learningrate,epochs = args.clientepoch,test_data = test_data[i],change_backbone=True)    
 
 #load synthetic dataset
-dataset = ServerData_read('/home/seyda/FedLMG-try/generated_images/test_noedit', transform)
-dataloader = torch.utils.data.DataLoader(dataset,batch_size=256,shuffle=True,num_workers=8,pin_memory=True,drop_last=True)
-server = Server(transform,args.serverbs,num_classes)
+#dataset = ServerData_read(f'/home/share/gen_data/semisup_cipqr_5img_10repeat_crossglo_classglo_scale10_0_90',transform)
+#dataloader = torch.utils.data.DataLoader(dataset,batch_size=256,shuffle=True,num_workers=8,pin_memory=True,drop_last=True)
+#server = Server(transform,args.serverbs,num_classes)
 
 ##synthetic dataset dataloader
-server.update_features(dataloader = dataloader)
+#server.update_features(dataloader = dataloader)
 
 ##centralized ceiling dataloader
-server.update_features(dataloader = server_loader)
+#server.update_features(dataloader = server_loader)
 
 #server.train(lr=args.learningrate,epochs = args.clientepoch,test_data = test_data)
 
 #server.multi_tea_kd_train(lr=args.learningrate,epochs = args.clientepoch,test_data = test_data)
 
-server.sp_tea_kd_train(lr=args.learningrate,epochs = args.clientepoch,test_data = test_data)
+#server.sp_tea_kd_train(lr=args.learningrate,epochs = args.clientepoch,test_data = test_data)
 
 
 
